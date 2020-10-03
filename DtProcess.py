@@ -1,10 +1,12 @@
 import os, sys
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
+import math
 
 import numpy as np
 import pandas as pd
 from itertools import combinations
+import matplotlib.pyplot as plt
 
 
 class DataLoader:
@@ -127,3 +129,28 @@ class InteractionDefiner:
                 data[f_name] = data[f_list].prod(axis=1)
 
         return data
+
+def get_grid_size(n):
+    i,j = 1,1
+    while i*j<n:
+        if i == j:
+            i += 1
+        elif i == j+1:
+            j += 1
+    return i,j
+
+def draw_histograms(df, variables=[]):
+    if variables==[]:
+        print('No variables specified. Plotting Histograms for all variables')
+        variables = df.columns
+
+    n_grids = math.ceil(len(variables)/4)
+    for j in np.arange(n_grids):
+        vars_now = variables[j*4:(j+1)*4]
+        fig=plt.figure()
+        for i, var_name in enumerate(vars_now):
+            ax=fig.add_subplot(2,2,i+1)
+            df[var_name].hist(bins=10,ax=ax)
+            ax.set_title("{} - Missing Values: {:.1f} %".format(var_name, df[var_name].isnull().sum()*100/df.shape[0]))
+        fig.tight_layout()  # Improves appearance a bit.
+    plt.show()
