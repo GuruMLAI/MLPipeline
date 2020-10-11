@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from itertools import combinations
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Button, RadioButtons
 
 
 class DataLoader:
@@ -139,18 +140,67 @@ def get_grid_size(n):
             j += 1
     return i,j
 
-def draw_histograms(df, variables=[]):
-    if variables==[]:
-        print('No variables specified. Plotting Histograms for all variables')
-        variables = df.columns
 
-    n_grids = math.ceil(len(variables)/4)
-    for j in np.arange(n_grids):
-        vars_now = variables[j*4:(j+1)*4]
+#Plot a histogram and take options
+
+class VarImputer:
+    """This class defines imputation methods, stores imputation values and performs imputation of training and test data"""
+
+    def __init__(self):
+        self.ImputeTable=pd.DataFrame(columns=['Variable','ImputeMethod','ImputeCode'])
+        self.dict = {}
+        print("New Variable Imputer Object defined")
+
+    def ind_hist(self,df,var_name):
         fig=plt.figure()
-        for i, var_name in enumerate(vars_now):
-            ax=fig.add_subplot(2,2,i+1)
-            df[var_name].hist(bins=10,ax=ax)
-            ax.set_title("{} - Missing Values: {:.1f} %".format(var_name, df[var_name].isnull().sum()*100/df.shape[0]))
-        fig.tight_layout()  # Improves appearance a bit.
-    plt.show()
+        ax=fig.add_subplot()
+        plt.subplots_adjust(left=0.3)
+        df[var_name].hist(bins=10,ax=ax)
+        ax.set_title("{} - Missing Values: {:.1f} %".format(var_name, df[var_name].isnull().sum()*100/df.shape[0]))
+
+        axcolor = 'lightgoldenrodyellow'
+        rax = plt.axes([0.05, 0.5, 0.15, 0.15], facecolor=axcolor)
+        radio = RadioButtons(rax, ('None', 'Median', 'Mode'))
+        plt.show()
+
+        return radio.value_selected
+
+    def draw_histograms(self, df, variables):
+
+        if variables == []:
+            print('Plotting Histograms for all variables')
+            variables = df.columns
+
+        n_grids = math.ceil(len(variables)/4)
+        for j in np.arange(n_grids):
+            vars_now = variables[j*4:(j+1)*4]
+
+            for i, var_name in enumerate(vars_now):
+                Imp_Type = self.ind_hist(df,var_name)
+                self.dict.update({var_name:Imp_Type})
+
+
+    def define(self, df, variables):
+        self.draw_histograms(df, variables)
+        print(self.dict)
+        row_list=[]
+        for a_key in self.dict:
+            if self.dict.get(a_key) == 'Median':
+                ImpVal = df[a_key].median()
+                row_list.append([a_key,self.dict.get(a_key),"{arg1}['{arg2}_Imp']={arg1}['{arg2}'].fillna({arg3})"\
+                .format(arg1=df.name,arg2=a_key,arg3=ImpVal)])
+            elif self.dict.get(a_key) == 'Mode':
+                ImpVal = df[a_key].mode()[0]
+                if isinstance(ImpVal, str):
+                    ImpVal = "'" + ImpVal + "'"
+                row_list.append([a_key,self.dict.get(a_key),"{arg1}['{arg2}_Imp']={arg1}['{arg2}'].fillna({arg3})"\
+                    .format(arg1=df.name,arg2=a_key,arg3=ImpVal)])
+
+
+        to_append = pd.DataFrame(row_list,columns=['Variable','ImputeMethod','ImputeCode'])
+
+        self.ImputeTable = self.ImputeTable.append(to_append,ignore_index=True)
+
+        self.ImputeTable.to_csv('abc.csv')
+
+        print('Imputation Parameters have been defined')
