@@ -1,7 +1,9 @@
 #! /usr/bin/python3
 
 import os, sys
-from MLPipeline.DtProcess import DataLoader, Standardizer, VarImputer
+from MLPipeline.DataLoader import DataLoader
+from MLPipeline.Imputer import VarImputer
+#Standardizer
 
 dl = DataLoader(os.path.join(sys.path[0],'Data'),'training.csv','test.csv')
 
@@ -11,6 +13,5 @@ test_data.name = 'test_data'
 
 
 Imp = VarImputer()
-#Imp.draw_histograms(train_data,train_data.columns.tolist())
-#Imp.draw_histograms(train_data,['RefId', 'IsBadBuy', 'Auction'])
-Imp.define(train_data, train_data.columns.tolist())
+Imp.imp_define(train_data, ['Trim'], output='impute_definitions.csv')
+Imp.imp_apply(train_data,input='impute_definitions.csv')
