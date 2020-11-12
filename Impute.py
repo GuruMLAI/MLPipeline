@@ -68,7 +68,7 @@ class VarImputer:
 
 
     def imp_apply(self, df, input=''):
-        
+
         if input != '':
             self.ImputeTable = pd.read_csv(input)
 
@@ -79,3 +79,5 @@ class VarImputer:
                 #print('{}\n{}\n{}'.format(row[0],row[1],row[2].format(arg1=df.name)))
                 exec(row[2].format(arg1='df'))
                 df.drop(row[0],axis=1,inplace=True)
+
+        return df
