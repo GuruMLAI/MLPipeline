@@ -1,0 +1,6 @@
+#For Git
+#Check the list of files in a particular folder of a Git Repo or the entire Repo (for Example fastbook repo, clean folder)
+svn ls https://github.com/fastai/fastbook.git/trunk/clean
+
+#Download (export to local) files in a particular folder of a Git Repo or the entire Repo (for Example fastbook repo, clean folder)
+svn export https://github.com/fastai/fastbook.git/trunk/clean
